@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绘制管道</title>
+  <!-- <script src="../three.js"></script>
+  <script src="../OrbitControls.js"></script> -->
+  <script src="../build/three.js"></script>
+<script src="./js/controls/OrbitControls.js"></script>
+</head>
+ 
+<body>
+  <script>
+    // 1,创建场景 
+    var scene = new THREE.Scene();
+    // 2,创建模型
+    var p1 = new THREE.Vector3(100,0,0);
+    var p2 = new THREE.Vector3(0,0,0);
+    // 创建三维直线
+    var line1 = new THREE.LineCurve3(p2,p1); 
+    var points = [];
+    for(var i=0;i<100;i+=5){
+      points.push(new THREE.Vector3(i,i*1.5,i*1.5))
+    }
+    // 创建三维样条曲线
+    var line = new THREE.CatmullRomCurve3(points);
+    // 创建曲线路径以便于将 三维直线和三维样条曲线合并成一条曲线
+    var curvePath = new THREE.CurvePath();
+    curvePath.curves.push(line,line1);
+    // 创建管道模型，扫描路径后渲染成管道
+    var geometry = new THREE.TubeGeometry(curvePath,10,5,10,true);
+    // 创建材质对象
+    var material = new THREE.MeshBasicMaterial({color:0xff11aa});
+    // 创建网格模型
+    var mesh = new THREE.Mesh(geometry,material);
+    scene.add(mesh);
+    //3,创建环境光对象
+    var ambient = new THREE.AmbientLight({color:0xffffff});
+    scene.add(ambient);
+    // 4，创建相机
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var k = width / height;
+    var s = 150;
+    // 创建正交相机
+    var camera = new THREE.OrthographicCamera(-s*k,s*k,s,-s,-1000,1000);
+    camera.position.set(200,300,200);
+    camera.lookAt(scene.position);
+    // 5,创建渲染器
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(width,height);
+    document.body.appendChild(renderer.domElement);
+    function render(){
+      renderer.render(scene,camera);
+    }
+    // 创建坐标轴辅助对象
+    var axes = new THREE.AxesHelper(500);
+    scene.add(axes);
+    // 创建鼠标辅助对象
+    var controls = new THREE.OrbitControls(camera,renderer.domElement);
+    controls.addEventListener('change',render)
+    render();
+  </script>
+</body>
+ 
+</html>

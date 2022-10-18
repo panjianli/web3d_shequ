@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>div</title>
+    <style>
+        .css_style {
+            background-color: rgb(247, 249, 249);
+            background-color: rgb(241, 245, 246);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            opacity: 0.5;
+            font-size: 4px;
+            color: rgb(238, 242, 243);
+            padding: 10px 10px 10px;
+            white-space: nowrap;
+        }
+
+        .css_style:after {
+            content: "";
+            border-style: solid;
+            border-top: 18px solid rgb(242, 245, 246);
+            ;
+            border-right: 8px solid transparent;
+            border-bottom: 18px solid transparent;
+            border-left: 8px solid transparent;
+            /* border-left: 18px solid rgba(0, 10, 40); */
+            ;
+            position: absolute;
+            /* left: 100%; */
+            top: 100%;
+            /* margin-top: 18px; */
+            margin-right: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="WebGL-output">
+        <div class="css_style" id="lableItem">
+            <span class="css3dTitleWarning" id="lableTitleWarning">报警信息: 2702户燃气浓度超标！</span>
+            <br>
+            <span class="css3dTitleWarning" id="lableTitleTemperature">业主电话：18355763100</span>
+           
+        </div>
+    </div>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "../build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+
+        import * as THREE from 'three';
+        import { TWEEN } from './jsm/libs/tween.module.min.js';
+        import { OrbitControls } from './jsm/controls/OrbitControls.js';
+        import { CSS3DRenderer, CSS3DObject } from './jsm/renderers/CSS3DRenderer.js';
+        import { GLTFLoader } from "./jsm/loaders/GLTFLoader.js"
+  
+        var scene, orbitControls, camera, renderer, labelRenderer;
+        var frustumSize = 500;
+        var cameraPos = new THREE.Vector3(200, 250, 500);
+        let css3DObject; 
+
+        initScene();
+
+        function initScene() {
+            /* 构建场景对象 */
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x77b5fe); /* 背景色 */
+
+            /* 环境光, 环境光不能用来投射阴影，因为它没有方向 */
+            var ambient = new THREE.AmbientLight(0xffffff, 1);
+            scene.add(ambient);
+
+            var point = new THREE.PointLight(0x666665);
+            point.position.set(220, 330, 300); // 点光源位置
+            scene.add(point); // 点光源添加到场景中
+
+            var directionalLight = new THREE.DirectionalLight(0x777777, 0.5);
+            scene.add(directionalLight);
+
+            /* 创建一个坐标系 */
+            var axisHelper = new THREE.AxesHelper(1000);
+            scene.add(axisHelper);
+
+            /* 相机 */
+            var aspect = window.innerWidth / window.innerHeight;
+            camera = new THREE.OrthographicCamera(frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 10000);
+            camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z); // 设置相机位置
+            camera.lookAt(scene.position); // 设置相机方向(指向的场景对象)
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight); // 设置渲染区域尺寸
+            document.body.appendChild(renderer.domElement); // body元素中插入canvas对象
+
+            labelRenderer = new CSS3DRenderer();
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            document.body.appendChild(labelRenderer.domElement);
+
+            orbitControls = new OrbitControls(camera, labelRenderer.domElement);
+            orbitControls.update();
+
+            labelRenderer.domElement.addEventListener("click", onMouseClick);
+
+            addCSS3DLabelToScene();
+        }
+
+        function render() {
+            requestAnimationFrame(render); /* 周期性执行渲染函数animate */
+            orbitControls.update();
+            labelRenderer.render(scene, camera);
+            renderer.render(scene, camera); /* 执行渲染 */
+        };
+
+
+
+var mixer;
+function initEarth() {
+    const bodyMaterial = new THREE.MeshBasicMaterial( {
+        color: 0xffff00,
+      
+    } );
+    const bodyMaterial2 = new THREE.MeshBasicMaterial( {
+        color: 0xffff00,
+     
+    } );
+
+    var loder = new GLTFLoader();
+    loder.load("./amodels/example2.glb", function (obj) {
+        console.log(obj)
+        //获取模型，并添加到场景
+        var model = obj.scene;
+        scene.add(model);
+        // Scene.getObjectByName( '1702' ).material = bodyMaterial;
+        // var obj1= scene.getObjectByName('test2', true)
+        // obj1.children[2].material=bodyMaterial
+    
+        // var obj2= scene.getObjectByName('test', true)
+        // obj2.children[2].material=bodyMaterial2
+        // console.log(obj1)
+       
+    })
+    
+}
+initEarth();
+
+        function modifyDocument(id, color, value) {
+            var dom = document.getElementById(id);
+            dom.style.color = color;
+            dom.textContent = value;
+        }
+
+        function addCSS3DLabelToScene() {
+            var element = document.getElementById("WebGL-output");
+
+            //把生成的CSSDOM对象处理成three的节点对象
+            css3DObject = new CSS3DObject(element);
+            //设置CSS3DObject对象
+            css3DObject.position.x = 0;
+            css3DObject.position.y = 0;
+            css3DObject.position.z = 0;
+            //在第二个场景中添加这个对象
+            scene.add(css3DObject);
+            // 默认不显示
+            css3DObject.visible = false;
+        }
+
+        function onMouseClick(event) {
+            console.log("===");
+            const mousePoint = new THREE.Vector2();
+            mousePoint.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mousePoint.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const rayCaster = new THREE.Raycaster();
+            rayCaster.setFromCamera(mousePoint, camera);
+            let intersects = rayCaster.intersectObjects(scene.children, true);
+            console.log(intersects);
+            if (intersects.length > 0) {
+                css3DObject.visible = true;
+                css3DObject.position.x = intersects[0].object.position.x - 50 + 18 ;
+                css3DObject.position.y = intersects[0].object.position.y + 50 + 38;
+                css3DObject.position.z = intersects[0].object.position.z
+                css3DObject.rotation.y = Math.PI / 2;//直接设置旋转属性，例如围绕y轴旋转-90度 
+                modifyDocument("lableTitleWarning", "red", "户号:2702燃气浓度超标！");
+                modifyDocument("lableTitleTemperature", "red", "业主电话: 13031008900");
+            } else {
+                // css3DObject.visible = false;
+            }
+        }
+        let texture = new THREE.TextureLoader().load("./amodels/t.png", function () {
+        // THREE.RepeatWrapping允许纹理重复
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(8, 1)
+        texture.needsUpdate = true
+
+        var material = new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.BackSide,
+            transparent: true
+        })
+        render();
+    
+        function animate() {
+        if (texture) texture.offset.x -= 0.1
+        requestAnimationFrame(animate)
+        render();
+        }
+      
+        // 创建顶点数组
+        let points_1 = [new THREE.Vector3(100, 2,-131),
+            new THREE.Vector3(99, 2, -32.219),
+        ]
+        let points_2 = [new THREE.Vector3(99, 2,-32.219),
+            new THREE.Vector3(13.548, 2, -33),
+        ]
+        let points_3 = [new THREE.Vector3(13.548, 2,-33),
+            new THREE.Vector3(11.87, 2, 68),
+        ]
+        // CatmullRomCurve3创建一条平滑的三维样条曲线
+        let curve_1 = new THREE.CatmullRomCurve3(points_1) // 曲线路径
+        points_1 = curve_1.getPoints(50);
+
+        let curve_2 = new THREE.CatmullRomCurve3(points_2) // 曲线路径
+        points_2 = curve_2.getPoints(50);
+
+        let curve_3 = new THREE.CatmullRomCurve3(points_3) // 曲线路径
+        points_3 = curve_3.getPoints(50);
+
+        // 创建管道
+        let tubeGeometry_1 = new THREE.TubeGeometry(curve_1, 80, 1)
+        let mesh_1 = new THREE.Mesh(tubeGeometry_1, material);
+
+        let tubeGeometry_2 = new THREE.TubeGeometry(curve_2, 80, 1)
+        let mesh_2 = new THREE.Mesh(tubeGeometry_2, material);
+
+        let tubeGeometry_3 = new THREE.TubeGeometry(curve_3, 80, 1)
+        let mesh_3 = new THREE.Mesh(tubeGeometry_3, material);
+
+
+        scene.add(mesh_1)
+        scene.add(mesh_2)
+        scene.add(mesh_3)
+
+        render()
+        animate()
+    })
+        
+    </script>
+</body>
+
+</html>
